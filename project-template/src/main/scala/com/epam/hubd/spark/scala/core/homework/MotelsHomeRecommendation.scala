@@ -92,12 +92,12 @@ object MotelsHomeRecommendation {
   }
 
   def getBids(rawBids: RDD[List[String]], exchangeRates: Map[String, Double]): RDD[BidItem] = {
-    val correctBidsMap = rawBids.filter(line => !line(2).contains("ERROR_") && !line(5).isEmpty && !line(6).isEmpty && !line(8).isEmpty)
-    correctBidsMap.flatMap(s => List(
-      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "US", rounded(s(5).toDouble * exchangeRates(s(1)), 2)),
-      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "MX", rounded(s(6).toDouble * exchangeRates(s(1)), 2)),
-      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "CA", rounded(s(8).toDouble * exchangeRates(s(1)), 2))
-    ))
+    val correctBidsMap = rawBids.filter(line => !line(2).contains("ERROR_")).filter(line => !(line(6).isEmpty && line(7).isEmpty && line(9).isEmpty))
+    correctBidsMap.map(s => List(
+      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "US", rounded(if(s(6).isEmpty) 0 else s(6).toDouble * exchangeRates(s(1)), 3)),
+      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "MX", rounded(if(s(7).isEmpty) 0 else s(7).toDouble * exchangeRates(s(1)), 3)),
+      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "CA", rounded(if(s(9).isEmpty) 0 else s(9).toDouble * exchangeRates(s(1)), 3))
+    )).map(s => getMaxBidItem(s))
   }
 
   def getMotels(sc: SparkContext, motelsPath: String): RDD[(String, String)] = {
@@ -108,11 +108,21 @@ object MotelsHomeRecommendation {
 
   def getEnriched(bids: RDD[BidItem], motels: RDD[(String, String)]): RDD[EnrichedItem] = {
     val newBids = bids.map(s => (s.motelId, s))
-    newBids.join(motels).map(s => (s._1, EnrichedItem(s._1, s._2._2, s._2._1.bidDate, s._2._1.loSa, s._2._1.price))).reduceByKey((s1, s2) => if(s1.price > s2.price) s1 else s2).map(s => s._2)
+    newBids.join(motels).map(s => EnrichedItem(s._1, s._2._2, s._2._1.bidDate, s._2._1.loSa, s._2._1.price))
   }
 
   def rounded(n: Double, x: Int) = {
     val w = Math.pow(10, x)
-    (n * w).toLong.toDouble / w
+    math.round(n * w) / w
+  }
+
+  def getMaxBidItem(list: List[BidItem]) = {
+    var maxPrice = 0.0
+    var result = list(0)
+    list.foreach(s => if(s.price > maxPrice){
+      result = s
+      maxPrice = s.price
+    })
+    result
   }
 }

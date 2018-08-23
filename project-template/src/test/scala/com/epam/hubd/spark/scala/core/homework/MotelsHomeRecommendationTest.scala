@@ -4,7 +4,6 @@ import java.io.File
 import java.nio.file.Files
 
 import com.epam.hubd.spark.scala.core.homework.MotelsHomeRecommendation.{AGGREGATED_DIR, ERRONEOUS_DIR}
-import com.epam.hubd.spark.scala.core.util.RddComparator
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext, SparkContextProvider}
 import org.apache.hadoop.fs.Path
 import org.apache.spark.{SparkConf, SparkContext}
@@ -20,11 +19,11 @@ class MotelsHomeRecommendationTest extends FunSuite with SharedSparkContext with
 
   override def conf = new SparkConf().setMaster("local[2]").setAppName("motels-home-recommendation test")
 
-  val INPUT_BIDS_SAMPLE = "src/test/resources/bids_sample.txt"
+  val INPUT_BIDS_SAMPLE = "/bids_sample.txt"
 
-  val INPUT_BIDS_INTEGRATION = "src/test/resources/integration/input/bids.txt"
-  val INPUT_EXCHANGE_RATES_INTEGRATION = "src/test/resources/integration/input/exchange_rate.txt"
-  val INPUT_MOTELS_INTEGRATION = "src/test/resources/integration/input/motels.txt"
+  val INPUT_BIDS_INTEGRATION = "/integration/input/bids.txt"
+  val INPUT_EXCHANGE_RATES_INTEGRATION = "/integration/input/exchange_rate.txt"
+  val INPUT_MOTELS_INTEGRATION = "/integration/input/motels.txt"
 
   val EXPECTED_AGGREGATED_INTEGRATION = "src/test/resources/integration/expected_output/aggregated"
   val EXPECTED_ERRORS_INTEGRATION = "src/test/resources/integration/expected_output/error_records"
@@ -78,8 +77,8 @@ class MotelsHomeRecommendationTest extends FunSuite with SharedSparkContext with
     runIntegrationTest()
 
     //If the test fails and you are interested in what are the differences in the RDDs uncomment the corresponding line
-    //printRddDifferences(EXPECTED_ERRORS_INTEGRATION, getOutputPath(ERRONEOUS_DIR))
-    //printRddDifferences(EXPECTED_AGGREGATED_INTEGRATION, getOutputPath(AGGREGATED_DIR))
+    printRddDifferences(EXPECTED_ERRORS_INTEGRATION, getOutputPath(ERRONEOUS_DIR))
+    printRddDifferences(EXPECTED_AGGREGATED_INTEGRATION, getOutputPath(AGGREGATED_DIR))
 
     assertRddTextFiles(EXPECTED_ERRORS_INTEGRATION, getOutputPath(ERRONEOUS_DIR))
     assertAggregatedFiles(EXPECTED_AGGREGATED_INTEGRATION, getOutputPath(AGGREGATED_DIR))
