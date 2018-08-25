@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.file.Files
 
 import com.epam.hubd.spark.scala.core.homework.MotelsHomeRecommendation.{AGGREGATED_DIR, ERRONEOUS_DIR}
+import com.epam.hubd.spark.scala.core.homework.domain.{BidItem, EnrichedItem}
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext, SparkContextProvider}
 import org.apache.hadoop.fs.Path
 import org.apache.spark.{SparkConf, SparkContext}
@@ -20,6 +21,8 @@ class MotelsHomeRecommendationTest extends FunSuite with SharedSparkContext with
   override def conf = new SparkConf().setMaster("local[2]").setAppName("motels-home-recommendation test")
 
   val INPUT_BIDS_SAMPLE = "/bids_sample.txt"
+  val INPUT_EXCHANGE_RATE_SAMPLE = "/exchange_rate_sample.txt"
+  val INPUT_MOTELS_SAMPLE = "/motels_sample.txt"
 
   val INPUT_BIDS_INTEGRATION = "/integration/input/bids.txt"
   val INPUT_EXCHANGE_RATES_INTEGRATION = "/integration/input/exchange_rate.txt"
@@ -82,6 +85,83 @@ class MotelsHomeRecommendationTest extends FunSuite with SharedSparkContext with
 
     assertRddTextFiles(EXPECTED_ERRORS_INTEGRATION, getOutputPath(ERRONEOUS_DIR))
     assertAggregatedFiles(EXPECTED_AGGREGATED_INTEGRATION, getOutputPath(AGGREGATED_DIR))
+  }
+
+  test("should read file with exchange rates") {
+    val expected = Map(
+      "11-05-08-2016" -> 0.873,
+      "10-06-11-2015" -> 0.987,
+      "10-05-02-2016" -> 0.876
+    )
+
+    val actual = MotelsHomeRecommendation.getExchangeRates(sc, INPUT_EXCHANGE_RATE_SAMPLE)
+    assert(expected, actual)
+  }
+
+  test("should return bids splitted by countries") {
+    val rawBids = sc.parallelize(
+      Seq(
+        List("0000002", "11-05-08-2016", "0.92", "1.68", "0.81", "0.68", "1.59", "", "1.63", "1.77", "2.06", "0.66", "1.53", "", "0.32", "0.88", "0.83", "1.01"),
+        List("0000001", "22-04-08-2016", "ERROR_INCONSISTENT_DATA")
+      )
+    )
+    val exchange_rates = Map(
+      "11-05-08-2016" -> 0.873,
+      "10-06-11-2015" -> 0.987,
+      "10-05-02-2016" -> 0.876
+    )
+
+    val expected = sc.parallelize(
+      Seq(
+        BidItem("0000002", "2016-08-05 11:00", "CA", 1.423)
+      )
+    )
+
+    val actual = MotelsHomeRecommendation.getBids(rawBids, exchange_rates)
+    assertRDDEquals(expected, actual)
+  }
+
+  test("should read file with motels") {
+    val expected = sc.parallelize(
+      Seq(
+        ("0000001", "Olinda Windsor Inn"),
+        ("0000002", "Merlin Por Motel")
+      )
+    )
+
+    val actual = MotelsHomeRecommendation.getMotels(sc, INPUT_MOTELS_SAMPLE)
+    assertRDDEquals(expected, actual)
+  }
+
+  test("should return bids with motel name") {
+    val expected = sc.parallelize(
+      Seq(
+        EnrichedItem("0000002", "Merlin Por Motel", "2016-08-05 11:00", "CA", 1.423),
+        EnrichedItem("0000005", "Majestic Ibiza Por Hostel", "2016-09-04 18:00", "US", 1.154),
+        EnrichedItem("0000003", "Olinda Big River Casino", "2015-11-07 04:00", "MX", 0.994)
+      )
+    )
+
+    val bids = sc.parallelize(
+      Seq(
+        BidItem("0000002", "2016-08-05 11:00", "CA", 1.423),
+        BidItem("0000005", "2016-09-04 18:00", "US", 1.154),
+        BidItem("0000003", "2015-11-07 04:00", "MX", 0.994)
+      )
+    )
+
+    val motels = sc.parallelize(
+      Seq(
+        ("0000001", "Olinda Windsor Inn"),
+        ("0000002", "Merlin Por Motel"),
+        ("0000003", "Olinda Big River Casino"),
+        ("0000004", "Majestic Big River Elegance Plaza"),
+        ("0000005", "Majestic Ibiza Por Hostel")
+      )
+    )
+
+    val actual = MotelsHomeRecommendation.getEnriched(bids, motels)
+    assertRDDEquals(expected, actual)
   }
 
   after {

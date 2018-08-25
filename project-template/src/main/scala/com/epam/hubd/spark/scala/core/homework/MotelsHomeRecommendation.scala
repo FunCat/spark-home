@@ -92,11 +92,11 @@ object MotelsHomeRecommendation {
   }
 
   def getBids(rawBids: RDD[List[String]], exchangeRates: Map[String, Double]): RDD[BidItem] = {
-    val correctBidsMap = rawBids.filter(line => !line(2).contains("ERROR_")).filter(line => !(line(6).isEmpty && line(7).isEmpty && line(9).isEmpty))
+    val correctBidsMap = rawBids.filter(line => !line(2).contains("ERROR_")).filter(line => !(line(5).isEmpty && line(6).isEmpty && line(8).isEmpty))
     correctBidsMap.map(s => List(
-      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "US", rounded(if(s(6).isEmpty) 0 else s(6).toDouble * exchangeRates(s(1)), 3)),
-      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "MX", rounded(if(s(7).isEmpty) 0 else s(7).toDouble * exchangeRates(s(1)), 3)),
-      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "CA", rounded(if(s(9).isEmpty) 0 else s(9).toDouble * exchangeRates(s(1)), 3))
+      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "US", rounded(if(s(5).isEmpty) 0 else s(5).toDouble * exchangeRates(s(1)), 3)),
+      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "CA", rounded(if(s(8).isEmpty) 0 else s(8).toDouble * exchangeRates(s(1)), 3)),
+      BidItem(s(0), Constants.OUTPUT_DATE_FORMAT.print(Constants.INPUT_DATE_FORMAT.parseDateTime(s(1))), "MX", rounded(if(s(6).isEmpty) 0 else s(6).toDouble * exchangeRates(s(1)), 3))
     )).map(s => getMaxBidItem(s))
   }
 
