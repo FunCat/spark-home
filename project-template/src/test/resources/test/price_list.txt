@@ -1,0 +1,7 @@
+pen,23
+pencil,28
+notepad,143
+paper,204
+paper folder,48
+eraser,45
+color pencils,347

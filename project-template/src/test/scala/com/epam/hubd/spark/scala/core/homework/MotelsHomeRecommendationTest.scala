@@ -5,6 +5,7 @@ import java.nio.file.Files
 
 import com.epam.hubd.spark.scala.core.homework.MotelsHomeRecommendation.{AGGREGATED_DIR, ERRONEOUS_DIR}
 import com.epam.hubd.spark.scala.core.homework.domain.{BidItem, EnrichedItem}
+import com.epam.hubd.spark.scala.core.util.RddComparator
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext, SparkContextProvider}
 import org.apache.hadoop.fs.Path
 import org.apache.spark.{SparkConf, SparkContext}
@@ -80,8 +81,8 @@ class MotelsHomeRecommendationTest extends FunSuite with SharedSparkContext with
     runIntegrationTest()
 
     //If the test fails and you are interested in what are the differences in the RDDs uncomment the corresponding line
-    printRddDifferences(EXPECTED_ERRORS_INTEGRATION, getOutputPath(ERRONEOUS_DIR))
-    printRddDifferences(EXPECTED_AGGREGATED_INTEGRATION, getOutputPath(AGGREGATED_DIR))
+    //printRddDifferences(EXPECTED_ERRORS_INTEGRATION, getOutputPath(ERRONEOUS_DIR))
+    //printRddDifferences(EXPECTED_AGGREGATED_INTEGRATION, getOutputPath(AGGREGATED_DIR))
 
     assertRddTextFiles(EXPECTED_ERRORS_INTEGRATION, getOutputPath(ERRONEOUS_DIR))
     assertAggregatedFiles(EXPECTED_AGGREGATED_INTEGRATION, getOutputPath(AGGREGATED_DIR))

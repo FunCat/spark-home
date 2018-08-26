@@ -1,4 +1,4 @@
-package com.epam.hubd.spark.scala.core.homework
+package com.epam.hubd.spark.scala.core.util
 
 import org.apache.spark.rdd.RDD
 

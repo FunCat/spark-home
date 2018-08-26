@@ -1,0 +1,5 @@
+1,5,443,pen;pencil;notepad;paper;eraser
+2,1,48,paper folder
+1,10,817,pen;pen;pen;color pencils;paper;paper folder;paper folder;eraser;pencil;pencil
+3,4,102,pen;pen;pencil;pencil
+1,1,23,pen
