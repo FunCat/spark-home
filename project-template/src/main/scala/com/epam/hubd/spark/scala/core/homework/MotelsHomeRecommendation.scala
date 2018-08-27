@@ -31,13 +31,14 @@ object MotelsHomeRecommendation {
     /**
       * Task 1:
       * Read the bid data from the provided file.
+      * Split each line from the file and return list of strings.
       */
     val rawBids: RDD[List[String]] = getRawBids(sc, bidsPath)
 
     /**
       * Task 1:
       * Collect the errors and save the result.
-      * Hint: Use the BideError case class
+      * Find all records which contain ERROR message and after that group them by date.
       */
     val erroneousRecords: RDD[String] = getErroneousRecords(rawBids)
     erroneousRecords.saveAsTextFile(s"$outputBasePath/$ERRONEOUS_DIR")
@@ -45,40 +46,34 @@ object MotelsHomeRecommendation {
     /**
       * Task 2:
       * Read the exchange rate information.
-      * Hint: You will need a mapping between a date/time and rate
+      * Split each line and return map where key - date and value - exchange rate.
       */
     val exchangeRates: Map[String, Double] = getExchangeRates(sc, exchangeRatesPath)
 
     /**
       * Task 3:
       * Transform the rawBids and use the BidItem case class.
-      * - Convert USD to EUR. The result should be rounded to 3 decimal precision.
-      * - Convert dates to proper format - use formats in Constants util class
-      * - Get rid of records where there is no price for a Losa or the price is not a proper decimal number
+      * Get all valid records, convert each record to three records based on the interested countries, and return only one record with the highest price.
       */
     val bids: RDD[BidItem] = getBids(rawBids, exchangeRates)
 
     /**
       * Task 4:
       * Load motels data.
-      * Hint: You will need the motels name for enrichment and you will use the id for join
+      * Split each line and return key/value RDD, where key - motelId and value - motel name.
       */
     val motels: RDD[(String, String)] = getMotels(sc, motelsPath)
 
     /**
       * Task5:
       * Join the bids with motel names and utilize EnrichedItem case class.
-      * Hint: When determining the maximum if the same price appears twice then keep the first entity you found
-      * with the given price.
       */
     val enriched: RDD[EnrichedItem] = getEnriched(bids, motels)
     enriched.saveAsTextFile(s"$outputBasePath/$AGGREGATED_DIR")
   }
 
   def getRawBids(sc: SparkContext, bidsPath: String): RDD[List[String]] = {
-    val path = getClass.getResource(bidsPath)
-    val file = sc.textFile(path.toString)
-    file.map(s => s.split(",").toList)
+    sc.textFile(bidsPath).map(s => s.split(",").toList)
   }
 
   def getErroneousRecords(rawBids: RDD[List[String]]): RDD[String] = {
@@ -86,9 +81,7 @@ object MotelsHomeRecommendation {
   }
 
   def getExchangeRates(sc: SparkContext, exchangeRatesPath: String): Map[String, Double] = {
-    val path = getClass.getResource(exchangeRatesPath)
-    val file = sc.textFile(path.toString)
-    file.map(s => (s.split(",")(0), s.split(",")(3).toDouble)).collect().toMap
+    sc.textFile(exchangeRatesPath).map(s => (s.split(",")(0), s.split(",")(3).toDouble)).collect().toMap
   }
 
   def getBids(rawBids: RDD[List[String]], exchangeRates: Map[String, Double]): RDD[BidItem] = {
@@ -101,9 +94,7 @@ object MotelsHomeRecommendation {
   }
 
   def getMotels(sc: SparkContext, motelsPath: String): RDD[(String, String)] = {
-    val path = getClass.getResource(motelsPath)
-    val file = sc.textFile(path.toString)
-    file.map(s => (s.split(",")(0), s.split(",")(1)))
+    sc.textFile(motelsPath).map(s => (s.split(",")(0), s.split(",")(1)))
   }
 
   def getEnriched(bids: RDD[BidItem], motels: RDD[(String, String)]): RDD[EnrichedItem] = {

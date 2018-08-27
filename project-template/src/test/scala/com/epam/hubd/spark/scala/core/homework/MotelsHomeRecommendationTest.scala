@@ -21,13 +21,13 @@ class MotelsHomeRecommendationTest extends FunSuite with SharedSparkContext with
 
   override def conf = new SparkConf().setMaster("local[2]").setAppName("motels-home-recommendation test")
 
-  val INPUT_BIDS_SAMPLE = "/bids_sample.txt"
-  val INPUT_EXCHANGE_RATE_SAMPLE = "/exchange_rate_sample.txt"
-  val INPUT_MOTELS_SAMPLE = "/motels_sample.txt"
+  val INPUT_BIDS_SAMPLE = "src/test/resources//bids_sample.txt"
+  val INPUT_EXCHANGE_RATE_SAMPLE = "src/test/resources//exchange_rate_sample.txt"
+  val INPUT_MOTELS_SAMPLE = "src/test/resources//motels_sample.txt"
 
-  val INPUT_BIDS_INTEGRATION = "/integration/input/bids.txt"
-  val INPUT_EXCHANGE_RATES_INTEGRATION = "/integration/input/exchange_rate.txt"
-  val INPUT_MOTELS_INTEGRATION = "/integration/input/motels.txt"
+  val INPUT_BIDS_INTEGRATION = "src/test/resources//integration/input/bids.txt"
+  val INPUT_EXCHANGE_RATES_INTEGRATION = "src/test/resources//integration/input/exchange_rate.txt"
+  val INPUT_MOTELS_INTEGRATION = "src/test/resources//integration/input/motels.txt"
 
   val EXPECTED_AGGREGATED_INTEGRATION = "src/test/resources/integration/expected_output/aggregated"
   val EXPECTED_ERRORS_INTEGRATION = "src/test/resources/integration/expected_output/error_records"
